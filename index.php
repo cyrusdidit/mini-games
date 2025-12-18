@@ -45,7 +45,6 @@ $top3 = getTypingTop3(__DIR__ . "/typing/leaderboard.json");
 
   <main style="max-width:1000px;margin:20px auto;padding:0 12px;">
     <h1>Game Menu</h1>
-    <p>Pick a game. Index shows Top 3 highscores.</p>
 
     <section style="border:1px solid #ccc;padding:12px;margin-bottom:16px;">
       <h2>⌨️ Text Typing</h2>
