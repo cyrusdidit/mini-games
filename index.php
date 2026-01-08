@@ -21,6 +21,7 @@ function getTypingTop3(string $filePath): array {
         }
     }
 
+    // Sort: highest WPM, then accuracy, then shortest time
     usort($all, function($a, $b) {
         return ($b["wpm"] <=> $a["wpm"])
             ?: ($b["accuracy"] <=> $a["accuracy"])
@@ -30,7 +31,41 @@ function getTypingTop3(string $filePath): array {
     return array_slice($all, 0, 3);
 }
 
+function getMemoryTop3(string $filePath): array {
+    if (!file_exists($filePath)) return [];
+    $raw = file_get_contents($filePath);
+    $data = json_decode($raw ?: "{}", true);
+    if (!is_array($data)) return [];
+
+    $all = [];
+    foreach ($data as $level => $items) {
+        if (!is_array($items)) continue;
+        foreach ($items as $it) {
+            if (!is_array($it)) continue;
+            $all[] = [
+                "nickname"  => (string)($it["nickname"] ?? "Unknown"),
+                "level"     => (string)$level,
+                "moves"     => (int)($it["moves"] ?? 9999),
+                "time"      => (string)($it["time"] ?? "00:00"),
+                "seconds"   => (int)($it["seconds"] ?? 999999),
+                "accuracy"  => (int)($it["accuracy"] ?? 0),
+            ];
+        }
+    }
+
+    // Sort: best = smallest seconds, smallest moves, highest accuracy
+    usort($all, function($a, $b) {
+        return ($a["seconds"] <=> $b["seconds"])
+            ?: ($a["moves"] <=> $b["moves"])
+            ?: ($b["accuracy"] <=> $a["accuracy"]);
+    });
+
+    return array_slice($all, 0, 3);
+}
+
+// Load leaderboards
 $top3 = getTypingTop3(__DIR__ . "/typing/leaderboard.json");
+$memoryTop3 = getMemoryTop3(__DIR__ . "/memory/leaderboard.json");
 ?>
 <!doctype html>
 <html>
@@ -41,39 +76,60 @@ $top3 = getTypingTop3(__DIR__ . "/typing/leaderboard.json");
   <title>Game Menu</title>
 </head>
 <body>
-  <?php include __DIR__ . "/partials/header.php"; ?>
 
-  <main style="max-width:1000px;margin:20px auto;padding:0 12px;">
-    <h1>Game Menu</h1>
+<?php include __DIR__ . "/partials/header.php"; ?>
 
-    <section style="border:1px solid #ccc;padding:12px;margin-bottom:16px;">
-      <h2>⌨️ Text Typing</h2>
-      <p><a href="typing.php">Play Typing Game</a></p>
+<main style="max-width:1000px;margin:20px auto;padding:0 12px;">
+  <h1>Game Menu</h1>
 
-      <h3>Top 3 Highscores (overall)</h3>
-      <?php if (count($top3) === 0): ?>
-        <p>No scores yet. Go play and save one!</p>
-      <?php else: ?>
-        <ol>
-          <?php foreach ($top3 as $row): ?>
-            <li>
-              <strong><?= htmlspecialchars($row["nickname"]) ?></strong>
-              — <?= (int)$row["wpm"] ?> WPM,
-              <?= (int)$row["accuracy"] ?>%,
-              Level: <?= htmlspecialchars($row["level"]) ?>,
-              Time: <?= htmlspecialchars($row["time"]) ?>
-            </li>
-          <?php endforeach; ?>
-        </ol>
-      <?php endif; ?>
-    </section>
+  <!-- Typing Game Section -->
+  <section style="border:1px solid #ccc;padding:12px;margin-bottom:16px;">
+    <h2>⌨️ Text Typing</h2>
+    <p><a href="typing.php">Play Typing Game ⌨️</a></p>
 
-    <section style="border:1px solid #ccc;padding:12px;">
-      <h2>🃏 Memory Cards</h2>
-      <p><a href="memory.php">Open</a></p>
-      <h3>Top 3 Highscores</h3>
-      <p>Coming soon (partner’s game).</p>
-    </section>
-  </main>
+    <h3>Top 3 Highscores (overall)</h3>
+    <?php if (count($top3) === 0): ?>
+      <p>No scores yet. Go play and save one!</p>
+    <?php else: ?>
+      <ol>
+        <?php foreach ($top3 as $row): ?>
+          <li>
+            <strong><?= htmlspecialchars($row["nickname"]) ?></strong>
+            — <?= (int)$row["wpm"] ?> WPM,
+            <?= (int)$row["accuracy"] ?>%,
+            Level: <?= htmlspecialchars($row["level"]) ?>,
+            Time: <?= htmlspecialchars($row["time"]) ?>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php endif; ?>
+  </section>
+
+  <!-- Memory Game Section -->
+  <section style="border:1px solid #ccc;padding:12px;">
+    <h2>🃏 Memory Cards</h2>
+    <p><a href="memory.php">Play Memory Card Game 🃏</a></p>
+
+    <h3>Top 3 Highscores (overall)</h3>
+
+    <?php if (count($memoryTop3) === 0): ?>
+      <p>No scores yet. Go play and save one!</p>
+    <?php else: ?>
+      <ol>
+        <?php foreach ($memoryTop3 as $row): ?>
+          <li>
+            <strong><?= htmlspecialchars($row["nickname"]) ?></strong>
+            — Level: <?= htmlspecialchars($row["level"]) ?>,
+            Time: <?= htmlspecialchars($row["time"]) ?>,
+            Moves: <?= (int)$row["moves"] ?>,
+            Accuracy: <?= (int)$row["accuracy"] ?>%
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php endif; ?>
+  </section>
+
+</main>
+
 </body>
 </html>
