@@ -5,8 +5,8 @@ $levels = [
   "hard" => [4, 5],
 ];
 
-$level = $_GET["level"] ?? "easy";
-if (!isset($levels[$level])) $level = "easy";
+$level = "easy";
+if (isset($_GET["level"]) && isset($levels[$_GET["level"]])) $level = $_GET["level"];
 
 [$rows, $cols] = $levels[$level];
 $totalCards = $rows * $cols;
@@ -27,15 +27,14 @@ $pairs = $totalCards / 2;
 <main style="max-width:1000px;margin:20px auto;padding:0 12px;">
   <h1>Memory Cards</h1>
 
-  <!-- Difficulty Dropdown -->
-  <form method="GET" style="margin-bottom:12px;">
-    <label>Difficulty:</label>
-    <select name="level" onchange="this.form.submit()">
-      <option value="easy" <?= $level==="easy"?"selected":"" ?>>Easy (2×2)</option>
-      <option value="medium" <?= $level==="medium"?"selected":"" ?>>Medium (3×4)</option>
-      <option value="hard" <?= $level==="hard"?"selected":"" ?>>Hard (4×5)</option>
-    </select>
-    <button type="button" onclick="window.location.reload()">Restart</button>
+<form style="margin-bottom:12px;">
+      <label>Difficulty:</label>
+      <select name="level">
+        <option value="easy" <?= $level==="easy"?"selected":"" ?>>Easy (2×2)</option>
+        <option value="medium" <?= $level==="medium"?"selected":"" ?>>Medium (3×4)</option>
+        <option value="hard" <?= $level==="hard"?"selected":"" ?>>Hard (4×5)</option>
+      </select>
+      <button type="button" onclick="resetGame()">Restart</button>
   </form>
 
   <!-- GAME BOX -->
@@ -65,15 +64,35 @@ $pairs = $totalCards / 2;
 
   <!-- Leaderboard -->
   <h2 style="margin-top:18px;">Leaderboard (<?= htmlspecialchars($level) ?>)</h2>
-  <div id="leaderboard" style="padding:10px;border:1px solid #ccc;">
-    Loading...
+  <div style="padding:10px;border:1px solid #ccc;">
+    <?php
+    $leaderboardFile = __DIR__ . "/memory/leaderboard.json";
+    $board = file_exists($leaderboardFile) ? json_decode(file_get_contents($leaderboardFile), true) : [];
+    $items = $board[$level] ?? [];
+
+    usort($items, fn($a, $b) => $a["seconds"] <=> $b["seconds"]);
+
+    if (empty($items)) {
+        echo "No scores yet.";
+    } else {
+        echo "<ol>";
+        foreach (array_slice($items, 0, 10) as $row) {
+            $nickname = htmlspecialchars($row["nickname"] ?? "");
+            $time = htmlspecialchars($row["time"] ?? "");
+            $moves = $row["moves"] ?? 0;
+            $accuracy = $row["accuracy"] ?? 0;
+            echo "<li><strong>$nickname</strong> — $time, $moves moves, $accuracy%</li>";
+        }
+        echo "</ol>";
+    }
+    ?>
   </div>
 
 </main>
 
 <script>
-  window.__LEVEL__ = <?= json_encode($level) ?>;
-  window.__PAIRS__ = <?= $pairs ?>;
+  // Initial level
+  document.querySelector('select[name="level"]').value = "easy";
 </script>
 <script src="assets/memory.js"></script>
 </body>

@@ -14,7 +14,14 @@ let started = false;
 
 let moves = 0;
 let pairsFound = 0;
-const totalPairs = window.__PAIRS__;
+let totalPairs = window.__PAIRS__;
+let currentLevel = window.__LEVEL__;
+
+const levels = {
+  "easy": [2, 2],
+  "medium": [3, 4],
+  "hard": [4, 5],
+};
 
 function updateAccuracy() {
     const acc = moves === 0 ? 100 : Math.round((pairsFound / moves) * 100);
@@ -39,6 +46,7 @@ function shuffle(arr) {
 }
 
 function createBoard() {
+    grid.innerHTML = '';
     const images = [];
     for (let i = 1; i <= totalPairs; i++) {
         images.push(i, i);
@@ -64,6 +72,37 @@ function createBoard() {
         grid.appendChild(card);
     });
 }
+
+function resetGame() {
+    clearInterval(timer);
+    first = null;
+    second = null;
+    lock = false;
+    matched = 0;
+    moves = 0;
+    pairsFound = 0;
+    seconds = 0;
+    started = false;
+    timeEl.textContent = "00:00";
+    updateAccuracy();
+    saveBtn.disabled = true;
+    msg.textContent = "";
+    createBoard();
+}
+
+function changeLevel(newLevel) {
+    if (!levels[newLevel]) return;
+    currentLevel = newLevel;
+    const [rows, cols] = levels[newLevel];
+    totalPairs = rows * cols / 2;
+    grid.style.setProperty('--cols', cols);
+    resetGame();
+}
+
+// Attach to select
+document.querySelector('select[name="level"]').addEventListener('change', (e) => {
+    changeLevel(e.target.value);
+});
 
 function flip(card) {
     if (lock || card === first || card.classList.contains("matched")) return;
@@ -115,40 +154,13 @@ function resetTurn() {
     lock = false;
 }
 
-function loadLeaderboard() {
-    fetch("load_memory_scores.php?level=" + window.__LEVEL__)
-        .then(r => r.json())
-        .then(data => {
-            let html = "<table class='lb'><tr><th>#</th><th>Name</th><th>Time</th><th>Moves</th><th>Accuracy</th></tr>";
-
-            if (data.length === 0) {
-                html += "<tr><td colspan='5'>No scores yet</td></tr>";
-            } else {
-                data.slice(0, 10).forEach((row, i) => {
-                    html += `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td>${row.nickname}</td>
-                            <td>${row.time}s</td>
-                            <td>${row.moves}</td>
-                            <td>${row.accuracy}%</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            html += "</table>";
-            document.getElementById("leaderboard").innerHTML = html;
-        });
-}
-
 saveBtn.onclick = () => {
     const nick = document.getElementById("nickname").value.trim();
     if (!nick) return;
 
     const accuracy = moves === 0 ? 100 : Math.round((pairsFound / moves) * 100);
 
-    fetch("save_memory_score.php", {
+    fetch("memory/save_score.php", {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: new URLSearchParams({
@@ -156,16 +168,30 @@ saveBtn.onclick = () => {
             time: seconds,
             moves,
             accuracy,
-            level: window.__LEVEL__
+            level: currentLevel
         })
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error('Network response was not ok');
+        return r.json();
+    })
     .then(res => {
         msg.textContent = res.success ? "Saved!" : "Error saving";
         saveBtn.disabled = true;
-        loadLeaderboard();
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Save failed:', error);
+        msg.textContent = "Error saving";
+        window.location.reload();
     });
 };
 
-createBoard();
-loadLeaderboard();
+// Attach to select
+document.querySelector('select[name="level"]').addEventListener('change', (e) => {
+    changeLevel(e.target.value);
+});
+
+// Initialize
+document.querySelector('select[name="level"]').value = "easy";
+changeLevel("easy");
