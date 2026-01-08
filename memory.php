@@ -21,11 +21,13 @@ $pairs = $totalCards / 2;
   <title>Memory Cards</title>
 </head>
 <body>
+
 <?php include __DIR__ . "/partials/header.php"; ?>
 
 <main style="max-width:1000px;margin:20px auto;padding:0 12px;">
   <h1>Memory Cards</h1>
 
+  <!-- Difficulty Dropdown -->
   <form method="GET" style="margin-bottom:12px;">
     <label>Difficulty:</label>
     <select name="level" onchange="this.form.submit()">
@@ -36,24 +38,37 @@ $pairs = $totalCards / 2;
     <button type="button" onclick="window.location.reload()">Restart</button>
   </form>
 
-  <div class="memory-info">
-    Time: <span id="time">00:00</span>
+  <!-- GAME BOX -->
+  <div style="border:1px solid #ccc;padding:12px;">
+    
+    <!-- Stats row -->
+    <div>
+      Time: <span id="time">00:00</span> |
+      Moves: <span id="moves">0</span> |
+      Accuracy: <span id="acc">100</span>% |
+      Pairs: <span id="pairs">0</span>/<?= $pairs ?>
+    </div>
+
+    <hr>
+
+    <!-- Game Grid -->
+    <div id="game" class="memory-grid" style="--cols:<?= $cols ?>;"></div>
+
+    <!-- Save Result -->
+    <div style="margin-top:10px;">
+      <input id="nickname" placeholder="Nickname" maxlength="20">
+      <button id="saveBtn" disabled>Save result</button>
+      <span id="msg" style="margin-left:10px;color:green;"></span>
+    </div>
+
+  </div> <!-- end game box -->
+
+  <!-- Leaderboard -->
+  <h2 style="margin-top:18px;">Leaderboard (<?= htmlspecialchars($level) ?>)</h2>
+  <div id="leaderboard" style="padding:10px;border:1px solid #ccc;">
+    Loading...
   </div>
 
-  <div 
-    id="game" 
-    class="memory-grid"
-    style="--cols:<?= $cols ?>;"
-  ></div>
-
-  <div class="memory-save">
-    <input id="nickname" placeholder="Nickname" maxlength="20">
-    <button id="saveBtn" disabled>Save result</button>
-    <span id="msg"></span>
-  </div>
-
-  <h2>Leaderboard (<?= htmlspecialchars($level) ?>)</h2>
-  <div id="leaderboard">Loading...</div>
 </main>
 
 <script>
