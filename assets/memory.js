@@ -38,6 +38,31 @@ function startTimer() {
     }, 1000);
 }
 
+function loadLeaderboard(level) {
+    fetch(`memory/save_score.php?mode=list&level=${level}`)
+        .then(r => r.json())
+        .then(data => {
+            const lb = document.getElementById("leaderboard");
+            if (!data.ok || !data.items.length) {
+                lb.innerHTML = "No scores yet.";
+                return;
+            }
+            let html = "<ol>";
+            data.items.forEach(item => {
+                const nick = item.nickname || "";
+                const time = item.time || "";
+                const moves = item.moves || 0;
+                const acc = item.accuracy || 0;
+                html += `<li><strong>${nick}</strong> — ${time}, ${moves} moves, ${acc}%</li>`;
+            });
+            html += "</ol>";
+            lb.innerHTML = html;
+        })
+        .catch(() => {
+            document.getElementById("leaderboard").innerHTML = "Error loading leaderboard.";
+        });
+}
+
 function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -97,6 +122,8 @@ function changeLevel(newLevel) {
     totalPairs = rows * cols / 2;
     grid.style.setProperty('--cols', cols);
     resetGame();
+    loadLeaderboard(newLevel);
+    document.getElementById("current-level").textContent = newLevel;
 }
 
 // Attach to select
@@ -193,5 +220,5 @@ document.querySelector('select[name="level"]').addEventListener('change', (e) =>
 });
 
 // Initialize
-document.querySelector('select[name="level"]').value = "easy";
-changeLevel("easy");
+document.querySelector('select[name="level"]').value = window.initialLevel;
+changeLevel(window.initialLevel);

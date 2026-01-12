@@ -1,5 +1,39 @@
 {
-    "easy": [],
-    "medium": [],
+    "easy": [
+        {
+            "nickname": "Test",
+            "time": "00:01",
+            "seconds": 1,
+            "moves": 2,
+            "accuracy": 100,
+            "created_at": "2026-01-12T06:31:37+00:00"
+        },
+        {
+            "nickname": "Testdasasd",
+            "time": "00:01",
+            "seconds": 1,
+            "moves": 2,
+            "accuracy": 100,
+            "created_at": "2026-01-12T06:38:22+00:00"
+        }
+    ],
+    "medium": [
+        {
+            "nickname": "sdadsfsdfds",
+            "time": "00:10",
+            "seconds": 10,
+            "moves": 10,
+            "accuracy": 60,
+            "created_at": "2026-01-12T06:42:09+00:00"
+        },
+        {
+            "nickname": "Test2",
+            "time": "00:13",
+            "seconds": 13,
+            "moves": 10,
+            "accuracy": 60,
+            "created_at": "2026-01-12T06:32:00+00:00"
+        }
+    ],
     "hard": []
 }

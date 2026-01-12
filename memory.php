@@ -63,36 +63,17 @@ $pairs = $totalCards / 2;
   </div> <!-- end game box -->
 
   <!-- Leaderboard -->
-  <h2 style="margin-top:18px;">Leaderboard (<?= htmlspecialchars($level) ?>)</h2>
-  <div style="padding:10px;border:1px solid #ccc;">
-    <?php
-    $leaderboardFile = __DIR__ . "/memory/leaderboard.json";
-    $board = file_exists($leaderboardFile) ? json_decode(file_get_contents($leaderboardFile), true) : [];
-    $items = $board[$level] ?? [];
-
-    usort($items, fn($a, $b) => $a["seconds"] <=> $b["seconds"]);
-
-    if (empty($items)) {
-        echo "No scores yet.";
-    } else {
-        echo "<ol>";
-        foreach (array_slice($items, 0, 10) as $row) {
-            $nickname = htmlspecialchars($row["nickname"] ?? "");
-            $time = htmlspecialchars($row["time"] ?? "");
-            $moves = $row["moves"] ?? 0;
-            $accuracy = $row["accuracy"] ?? 0;
-            echo "<li><strong>$nickname</strong> — $time, $moves moves, $accuracy%</li>";
-        }
-        echo "</ol>";
-    }
-    ?>
+  <h2 style="margin-top:18px;">Leaderboard (<span id="current-level"><?= htmlspecialchars($level) ?></span>)</h2>
+  <div id="leaderboard">
+    Loading...
   </div>
 
 </main>
 
 <script>
   // Initial level
-  document.querySelector('select[name="level"]').value = "easy";
+  window.initialLevel = "<?= $level ?>";
+  document.querySelector('select[name="level"]').value = window.initialLevel;
 </script>
 <script src="assets/memory.js"></script>
 </body>
